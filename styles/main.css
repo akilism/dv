@@ -1,0 +1,93 @@
+body {
+  font-size: 16px;
+  font-family: "Open Sans", Helvetica, Arial;
+}
+
+.react-root {
+  position: relative;
+  min-height: 100vh;
+}
+
+.month {
+  margin: 0 30px;
+  border-collapse: collapse;
+  padding: 0;
+}
+
+.month th {
+  font-size: 32px;
+  font-family: "TradeGothic-BoldCondTwenty", sans-serif;
+  padding: 30px 0;
+}
+
+.month-link {
+  font-size: 14px;
+  font-family: "Open Sans", Helvetica, Arial;
+  cursor: pointer;
+}
+
+.daily,
+.empty-daily {
+  vertical-align: top;
+  position: relative;
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.75);
+  padding: 0;
+}
+
+.daily {
+  cursor: pointer;
+}
+
+.empty-daily {
+  background-color: #fff;
+}
+
+.daily-image {
+  width: 100%;
+}
+
+.daily-copy {
+  padding: 0 10px 5px 10px;
+  position: absolute;
+  transform: translate(0, -100%);
+}
+
+.daily-title {
+  font-size: 22px;
+  font-family: "TradeGothic-BoldCondTwenty", sans-serif;
+}
+
+.daily-date {
+  font-size: 12px;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+
+
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.daily-player {
+  background-color: #000;
+  padding: 20px;
+}
+
+.daily-player .daily-copy {
+  color: #fff;
+  position: initial;
+  transform: none;
+  max-width: 600px;
+  line-height: 1.25;
+}
