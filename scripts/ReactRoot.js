@@ -1,10 +1,10 @@
 import { default as React, Component } from 'react';
 import { default as ReactDOM } from 'react-dom';
 import moment from 'moment';
-// import _ from 'lodash';
+import _ from 'lodash';
 import R from 'ramda';
-import {pad, pad0} from './lib/pad.js';
-import {fill, fill0} from './lib/fill.js';
+import { pad, pad0 } from './lib/pad.js';
+import { fill, fill0 } from './lib/fill.js';
 
 import rawData from "../assets/daily-vice.json";
 import foundation from "../assets/beyonce-halftime.mp4";
@@ -28,7 +28,12 @@ export default class Root extends Component {
     this.state = {
       activeMonth: 0
     };
+
+    this.moveTimeout = 1000;
+    this.autoplayTimeout = 1500;
+    this.wm = _.throttle(this.windowMove.bind(this), 500, {leading: false, trailing: true});
   }
+
 
   monthArray(mmt) {
     const firstDayOfMonth = moment(mmt).startOf('month').day(),
@@ -45,6 +50,52 @@ export default class Root extends Component {
     return data;
   }
 
+  startHideTimer() {
+    const timerId = setTimeout(() => {
+      window.removeEventListener("mousemove", this.wm);
+    }, this.moveTimeout);
+  }
+
+  windowMove() {
+    console.log("WINDOW MOVE");
+    this.setState({activeDaily: null, hovered: null, timerId: null});
+  }
+
+  startTimer(daily) {
+    const timerId = setTimeout(() => {
+      console.log("setTimeout!!", daily);
+      this.startHideTimer();
+      window.addEventListener("mousemove", this.wm);
+      this.setState({ activeDaily: daily, hovered: null, timerId: null });
+    }, this.autoplayTimeout);
+    this.setState({ hovered: daily, timerId });
+  }
+
+  dailyHover(daily, evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    const { hovered, timerId } = this.state;
+
+    if(!hovered || hovered.date !== daily.date) {
+      this.startTimer(daily);
+    }
+  }
+
+  dailyOut(daily, evt) {
+    evt.stopPropagation();
+    const { hovered, timerId } = this.state;
+
+    if(hovered && hovered.date !== daily.date && timerId) {
+      console.log("clearTimeout!!", timerId);
+      clearTimeout(timerId);
+      this.setState({hovered: null, timerId: null});
+    }
+  }
+
+  dailyClick(daily) {
+    this.setState({ activeDaily: daily });
+  }
+
   getDom(month, prevMonth, nextMonth, dailyVices) {
     const monthDom = month.map((week) => {
       const days = week.map((day) => {
@@ -53,29 +104,32 @@ export default class Root extends Component {
         }, dailyVices);
 
         return (day === 0 || !daily) ? (<td className="empty-daily"> </td>) : (
-          <td className="daily" onClick={() => { console.log(daily); this.setState({activeDaily: daily}); }}>
-            <img className="daily-image" src={daily.image} />
+          <td className="daily"
+              onMouseOut={ this.dailyOut.bind(this, daily) }
+              onMouseMove={ this.dailyHover.bind(this, daily) }
+              onClick={ this.dailyClick.bind(this, daily) }>
+            <img className="daily-image" src={ daily.image } />
             <div className="daily-copy">
-              <span className="daily-date">{daily.date}</span>
-              <h2 className="daily-title">{daily.title}</h2>
+              <span className="daily-date">{ daily.date }</span>
+              <h2 className="daily-title">{ daily.title }</h2>
             </div>
           </td>
         );
       });
       return (<tr>{days}</tr>);
     }),
-    prevLink = (prevMonth !== false) ? (<span className="month-link" onClick={() => { this.setState({activeMonth: prevMonth}); }}>prev</span>) : "",
-    nextLink = (nextMonth !== false) ? (<span className="month-link" onClick={() => { this.setState({activeMonth: nextMonth}); }}>next</span>) : "";
+    prevLink = (prevMonth !== false) ? (<span className="month-link" onClick={ () => { this.setState({ activeMonth: prevMonth }); } }>prev</span>) : "",
+    nextLink = (nextMonth !== false) ? (<span className="month-link" onClick={ () => { this.setState({ activeMonth: nextMonth }); } }>next</span>) : "";
 
     return (
       <table className="month">
         <thead>
           <tr>
-            <th colSpan="7">{prevLink}<h3>{month[1][0].format('MMMM YYYY')}</h3>{nextLink}</th>
+            <th colSpan="7">{ prevLink }<h3>{ month[1][0].format('MMMM YYYY') }</h3>{ nextLink }</th>
           </tr>
         </thead>
         <tbody>
-          {monthDom}
+          { monthDom }
         </tbody>
       </table>
     );
@@ -83,13 +137,13 @@ export default class Root extends Component {
 
   getOverlay(daily) {
     return (
-      <div className="overlay" onClick={() => { console.log(daily); this.setState({activeDaily: false}); }}>
+      <div className="overlay" onClick={ () => { console.log(daily); this.setState({ activeDaily: false }); } }>
         <div className="daily-player">
-          <video src={foundation} controls></video>
+          <video src={ foundation } controls></video>
           <div className="daily-copy">
-              <span className="daily-date">{daily.date}</span>
-              <h2 className="daily-title">{daily.title}</h2>
-              <div className="daily-dek">{daily.dek}</div>
+              <span className="daily-date">{ daily.date }</span>
+              <h2 className="daily-title">{ daily.title }</h2>
+              <div className="daily-dek">{ daily.dek }</div>
           </div>
         </div>
       </div>
@@ -97,7 +151,7 @@ export default class Root extends Component {
   }
 
   render() {
-    const {activeDaily, activeMonth} = this.state,
+    const { activeDaily, activeMonth } = this.state,
           dailyVices = rawData["daily-vices"].map(this.dailyVice).reverse(),
           months = distinctMonths(dailyVices),
           month = this.monthArray(moment(months[activeMonth])),
@@ -109,9 +163,9 @@ export default class Root extends Component {
     return (
       <div className="react-root">
         <div className="month">
-          {dom}
+          { dom }
         </div>
-        {overlay}
+        { overlay }
       </div>
     );
   }
